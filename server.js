@@ -6,9 +6,25 @@ const locationRoutes = require('./routes/locationRoutes');
 const app = express();
 const PORT = 4000;
 
-// Middleware
+// Middleware - Allow multiple origins for dev and prod
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://skiply-20.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin:process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());

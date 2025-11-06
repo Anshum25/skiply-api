@@ -168,17 +168,26 @@ All endpoints return errors in the following format:
 
 ## External APIs Used
 
+- **CountriesNow Cities API**
+  - Endpoint: `https://countriesnow.space/api/v0.1/countries/cities`
+  - Free tier, no API key required
+  - Provides **4,000+ Indian cities** dynamically
+  - Data cached for 24 hours to improve performance
+
 - **BigDataCloud Reverse Geocoding API**
   - Endpoint: `https://api.bigdatacloud.net/data/reverse-geocode-client`
   - Free tier, no API key required
-  - Used for converting coordinates to city names
+  - Used for converting GPS coordinates to city names
 
 ## Development Notes
 
 - The server logs all incoming requests with method and path
 - CORS is enabled for frontend communication
 - All responses include proper error handling
-- Cities data is stored in-memory for fast access
+- **Cities are fetched from external API** and cached for 24 hours
+- **Automatic fallback** to local city list if API fails
+- First request may be slightly slower while fetching from API
+- Subsequent requests use cached data for instant response
 
 ## Next Steps
 

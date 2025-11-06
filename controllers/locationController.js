@@ -1,80 +1,70 @@
 const axios = require('axios');
 
-// Indian cities data with popular cities
-const indianCities = [
-  // Popular cities
-  'Ahmedabad', 'Bangalore', 'Chandigarh', 'Chennai', 'Delhi NCR', 'Goa', 'Hyderabad', 'Kolkata', 'Mumbai', 'Pune',
-  
-  // A
-  'Agra', 'Agartala', 'Ajmer', 'Akola', 'Aligarh', 'Allahabad', 'Alwar', 'Ambala', 'Amravati', 'Amritsar', 'Anand', 'Asansol', 'Aurangabad',
-  
-  // B
-  'Bareilly', 'Belgaum', 'Bhavnagar', 'Bhilai', 'Bhilwara', 'Bhopal', 'Bhubaneswar', 'Bikaner', 'Bilaspur', 'Bokaro', 'Burhanpur',
-  
-  // C
-  'Coimbatore', 'Cuttack',
-  
-  // D
-  'Davangere', 'Dehradun', 'Dhanbad', 'Dharwad', 'Durgapur',
-  
-  // E
-  'Erode',
-  
-  // F
-  'Faridabad', 'Firozabad',
-  
-  // G
-  'Gandhinagar', 'Ghaziabad', 'Gorakhpur', 'Gulbarga', 'Guntur', 'Gurgaon', 'Guwahati', 'Gwalior',
-  
-  // H
-  'Haridwar', 'Hisar', 'Hosur', 'Hubli',
-  
-  // I
-  'Imphal', 'Indore', 'Itanagar',
-  
-  // J
-  'Jabalpur', 'Jaipur', 'Jalandhar', 'Jalgaon', 'Jammu', 'Jamnagar', 'Jamshedpur', 'Jhansi', 'Jodhpur', 'Junagadh',
-  
-  // K
-  'Kakinada', 'Kanpur', 'Karnal', 'Kochi', 'Kohima', 'Kolhapur', 'Kollam', 'Kota', 'Kozhikode',
-  
-  // L
-  'Lucknow', 'Ludhiana',
-  
-  // M
-  'Madurai', 'Mangalore', 'Mathura', 'Meerut', 'Moradabad', 'Mysore',
-  
-  // N
-  'Nagpur', 'Nanded', 'Nashik', 'Nellore', 'Noida',
-  
-  // P
-  'Panaji', 'Panipat', 'Patiala', 'Patna', 'Pondicherry',
-  
-  // R
-  'Raipur', 'Rajahmundry', 'Rajkot', 'Ranchi', 'Ratlam', 'Rourkela',
-  
-  // S
-  'Salem', 'Sangli', 'Shimla', 'Siliguri', 'Solapur', 'Srinagar', 'Surat',
-  
-  // T
-  'Thane', 'Thanjavur', 'Thiruvananthapuram', 'Thrissur', 'Tiruchirappalli', 'Tirunelveli', 'Tirupati', 'Tiruppur', 'Trivandrum', 'Tumkur',
-  
-  // U
-  'Udaipur', 'Ujjain',
-  
-  // V
-  'Vadodara', 'Varanasi', 'Vellore', 'Vijayawada', 'Visakhapatnam',
-  
-  // W
-  'Warangal',
-  
-  // Others
-  'Abohar', 'Achampet', 'Adilabad', 'Adoni', 'Agar', 'Ahmednagar', 'Aizawl', 'Akbarpur', 'Akot', 'Alappuzha', 'Almora', 'Amalner', 'Ambarnath', 'Ambikapur', 'Amreli', 'Anakapalle', 'Anantapur', 'Anantnag', 'Arrah', 'Ashoknagar', 'Azamgarh'
-];
+// Cache for cities data to avoid repeated API calls
+let citiesCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+// Fetch Indian cities from API
+async function fetchIndianCities() {
+  // Check if cache is valid
+  if (citiesCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
+    return citiesCache;
+  }
+
+  try {
+    // Using CountryStateCity API - Free, no API key required
+    const response = await axios.post(
+      'https://countriesnow.space/api/v0.1/countries/cities',
+      { country: 'India' },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.data && response.data.data) {
+      citiesCache = response.data.data;
+      cacheTimestamp = Date.now();
+      console.log(`✅ Fetched ${citiesCache.length} cities from API`);
+      return citiesCache;
+    }
+    
+    // Fallback to basic list if API fails
+    console.log('⚠️ API response invalid, using fallback cities');
+    return getFallbackCities();
+  } catch (error) {
+    console.error('❌ Error fetching cities from API:', error.message);
+    console.log('⚠️ Using fallback cities');
+    // Return fallback cities if API fails
+    return getFallbackCities();
+  }
+}
+
+// Fallback city list (in case API fails)
+function getFallbackCities() {
+  return [
+    'Ahmedabad', 'Bangalore', 'Chandigarh', 'Chennai', 'Delhi', 'Goa', 'Hyderabad', 'Kolkata', 'Mumbai', 'Pune',
+    'Agra', 'Agartala', 'Ajmer', 'Akola', 'Aligarh', 'Allahabad', 'Alwar', 'Ambala', 'Amravati', 'Amritsar',
+    'Bareilly', 'Belgaum', 'Bhavnagar', 'Bhopal', 'Bhubaneswar', 'Bikaner', 'Bilaspur',
+    'Coimbatore', 'Cuttack', 'Dehradun', 'Dhanbad', 'Durgapur', 'Erode', 'Faridabad',
+    'Gandhinagar', 'Ghaziabad', 'Gorakhpur', 'Guntur', 'Gurgaon', 'Guwahati', 'Gwalior',
+    'Haridwar', 'Hisar', 'Hubli', 'Imphal', 'Indore', 'Jabalpur', 'Jaipur', 'Jalandhar',
+    'Jammu', 'Jamnagar', 'Jamshedpur', 'Jodhpur', 'Kanpur', 'Kochi', 'Kolhapur', 'Kota',
+    'Lucknow', 'Ludhiana', 'Madurai', 'Mangalore', 'Meerut', 'Mysore', 'Nagpur', 'Nashik',
+    'Noida', 'Patna', 'Raipur', 'Rajkot', 'Ranchi', 'Salem', 'Shimla', 'Siliguri', 'Surat',
+    'Thane', 'Thiruvananthapuram', 'Tiruchirappalli', 'Tirupati', 'Udaipur', 'Vadodara',
+    'Varanasi', 'Vijayawada', 'Visakhapatnam', 'Warangal'
+  ];
+}
 
 // Get all cities grouped by first letter
 exports.getAllCities = async (req, res) => {
   try {
+    // Fetch cities from API
+    const indianCities = await fetchIndianCities();
+
     // Group cities by first letter
     const groupedCities = indianCities.reduce((acc, city) => {
       const letter = city[0].toUpperCase();
@@ -168,6 +158,9 @@ exports.searchCities = async (req, res) => {
       });
     }
 
+    // Fetch cities from API
+    const indianCities = await fetchIndianCities();
+
     const searchTerm = query.toLowerCase();
     const filteredCities = indianCities.filter(city =>
       city.toLowerCase().includes(searchTerm)
@@ -192,19 +185,20 @@ exports.searchCities = async (req, res) => {
 
 // Get popular cities
 exports.getPopularCities = async (req, res) => {
-  try {
-    const popularCities = [
-      { name: 'Ahmedabad', icon: '🏙️' },
-      { name: 'Bangalore', icon: '🏙️' },
-      { name: 'Chandigarh', icon: '🏙️' },
-      { name: 'Chennai', icon: '🏙️' },
-      { name: 'Delhi NCR', icon: '🏙️' },
-      { name: 'Goa', icon: '🏖️' },
-      { name: 'Hyderabad', icon: '🏙️' },
-      { name: 'Kolkata', icon: '🏙️' },
-      { name: 'Mumbai', icon: '🏙️' },
-      { name: 'Pune', icon: '🏙️' }
-    ];
+ try {
+  const popularCities = [
+    { name: 'Ahmedabad', icon: '🕍' },      // Sabarmati Ashram / heritage city
+    { name: 'Bangalore', icon: '💻' },      // Silicon Valley of India
+    { name: 'Chandigarh', icon: '🏞️' },     // Rock Garden / planned city
+    { name: 'Chennai', icon: '🌊' },        // Marina Beach / coastal city
+    { name: 'Delhi NCR', icon: '🕌' },       // India Gate / Red Fort
+    { name: 'Goa', icon: '🏖️' },            // Beaches
+    { name: 'Hyderabad', icon: '🕋' },       // Charminar
+    { name: 'Kolkata', icon: '🌉' },         // Howrah Bridge
+    { name: 'Mumbai', icon: '🕍' },          // Gateway of India
+    { name: 'Pune', icon: '🏰' }             // Shaniwar Wada
+  ];
+
 
     res.status(200).json({
       success: true,
